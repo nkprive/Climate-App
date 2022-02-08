@@ -11,6 +11,13 @@ dependencies:
     sdk: flutter
 
   cupertino_icons: ^0.1.2
+  font_awesome_flutter: ^9.2.0
+  geolocator: ^8.0.5
+  http: ^0.13.4
+  slugify: ^2.0.0
+  google_maps_flutter: ^2.1.1
+  fmaps: ^0.0.2
+  flutter_spinkit: ^5.1.0
 
 dev_dependencies:
   flutter_test:
@@ -27,3 +34,11 @@ flutter:
     fonts:
     - asset: fonts/SpartanMB-Black.otf
       weight: 900
+
+  - family: Spartan MB Regular
+    fonts:
+      - asset: fonts/SpartanMB-Regular.otf
+
+  - family: Spartan MB Medium
+    fonts:
+      - asset: fonts/SpartanMB-Medium.otf

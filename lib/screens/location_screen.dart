@@ -1,5 +1,16 @@
+import 'package:clima/screens/city_screen.dart';
+import 'package:clima/utilities/enums.dart';
 import 'package:flutter/material.dart';
-import 'package:clima/utilities/constants.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
+
+import '../UiWidgets/FadedContainer.dart';
+import '../UiWidgets/LocationScreenTopNavigation.dart';
+import '../UiWidgets/LocationWeatherDetails.dart';
+import '../utilities/Location.dart';
+import '../utilities/Weather.dart';
+import '../utilities/WeatherApi.dart';
+
+WeatherApi weatherApi = WeatherApi();
 
 class LocationScreen extends StatefulWidget {
   @override
@@ -7,69 +18,100 @@ class LocationScreen extends StatefulWidget {
 }
 
 class _LocationScreenState extends State<LocationScreen> {
+  Weather weather;
+  Location location;
+  String staticMapUrl;
+
+  Future<void> getData() async {
+    location = Location();
+    await location.getCurrentLocation();
+    weather = await weatherApi.getWeather(
+      latitude: location.latitude,
+      longitude: location.longitude,
+    );
+    staticMapUrl = location.getStaticMapUrl();
+
+    await Future.delayed(
+      Duration(seconds: 4),
+      () {
+        return true;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          image: DecorationImage(
-            image: AssetImage('images/location_background.jpg'),
-            fit: BoxFit.cover,
-            colorFilter: ColorFilter.mode(
-                Colors.white.withOpacity(0.8), BlendMode.dstATop),
-          ),
-        ),
-        constraints: BoxConstraints.expand(),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  FlatButton(
-                    onPressed: () {},
-                    child: Icon(
-                      Icons.near_me,
-                      size: 50.0,
-                    ),
-                  ),
-                  FlatButton(
-                    onPressed: () {},
-                    child: Icon(
-                      Icons.location_city,
-                      size: 50.0,
-                    ),
-                  ),
-                ],
+      body: FutureBuilder(
+        future: getData(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            // show results
+            return Container(
+              decoration: BoxDecoration(
+                image: DecorationImage(
+                  image: NetworkImage(staticMapUrl),
+                  fit: BoxFit.cover,
+                ),
               ),
-              Padding(
-                padding: EdgeInsets.only(left: 15.0),
-                child: Row(
+              constraints: BoxConstraints.expand(),
+              child: SafeArea(
+                bottom: false,
+                top: false,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: <Widget>[
-                    Text(
-                      '32°',
-                      style: kTempTextStyle,
+                    FadedContainer(
+                      direction: fadeDirection.down,
+                      child: Padding(
+                        padding:
+                            const EdgeInsets.fromLTRB(10.0, 50.0, 10.0, 20.0),
+                        child: LocationScreenTopNavigation(
+                          onLeftTap: () {
+                            getData();
+                          },
+                          onRightTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) {
+                                  return CityScreen();
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
                     ),
-                    Text(
-                      '☀️',
-                      style: kConditionTextStyle,
+                    Spacer(),
+                    FadedContainer(
+                      direction: fadeDirection.up,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: LocationWeatherDetails(
+                          weather: weather,
+                        ),
+                      ),
                     ),
                   ],
                 ),
               ),
-              Padding(
-                padding: EdgeInsets.only(right: 15.0),
-                child: Text(
-                  "It's 🍦 time in San Francisco!",
-                  textAlign: TextAlign.right,
-                  style: kMessageTextStyle,
+            );
+          } else {
+            // waiting for results
+            return Center(
+              child: SizedBox(
+                width: 60,
+                height: 60,
+                child: SpinKitDoubleBounce(
+                  color: Colors.white,
+                  size: 50.0,
                 ),
               ),
-            ],
-          ),
-        ),
+            );
+          }
+        },
       ),
     );
   }
